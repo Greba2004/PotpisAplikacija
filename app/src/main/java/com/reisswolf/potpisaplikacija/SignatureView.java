@@ -6,8 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,7 +14,7 @@ public class SignatureView extends View {
 
     private Path path;
     private Paint paint;
-    private Canvas canvas;
+    private Canvas bitmapCanvas;
     private Bitmap bitmap;
 
     public SignatureView(Context context, AttributeSet attrs) {
@@ -31,13 +29,15 @@ public class SignatureView extends View {
         paint.setAntiAlias(true);
         paint.setStrokeWidth(5);
         paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        paint.setStrokeCap(Paint.Cap.ROUND);
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        canvas = new Canvas(bitmap);
+        bitmapCanvas = new Canvas(bitmap);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class SignatureView extends View {
                 path.lineTo(x, y);
                 break;
             case MotionEvent.ACTION_UP:
-                canvas.drawPath(path, paint);
+                bitmapCanvas.drawPath(path, paint);
                 path.reset();
                 break;
         }
@@ -70,8 +70,9 @@ public class SignatureView extends View {
     }
 
     public void clear() {
-        path.reset();
-        invalidate();
+        path.reset();                         // očisti trenutno crtanje
+        bitmap.eraseColor(Color.TRANSPARENT); // očisti bitmapu
+        invalidate();                         // ponovo iscrtaj view
     }
 
     public Bitmap getSignature() {
